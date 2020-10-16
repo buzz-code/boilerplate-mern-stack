@@ -1,149 +1,122 @@
 import React, { useState } from "react";
 import { withRouter } from "react-router-dom";
 import { loginUser } from "../../../_actions/user_actions";
-import { Formik } from 'formik';
-import * as Yup from 'yup';
-import { Form, Icon, Input, Button, Checkbox, Typography } from 'antd';
+import { Formik } from "formik";
+import * as Yup from "yup";
+import { Form, Icon, Input, Button, Checkbox, Typography } from "antd";
 import { useDispatch } from "react-redux";
 
 const { Title } = Typography;
 
 function LoginPage(props) {
-  const dispatch = useDispatch();
-  const rememberMeChecked = localStorage.getItem("rememberMe") ? true : false;
+    const dispatch = useDispatch();
+    const rememberMeChecked = localStorage.getItem("rememberMe") ? true : false;
+    const initialEmail = localStorage.getItem("rememberMe") ? localStorage.getItem("rememberMe") : "";
 
-  const [formErrorMessage, setFormErrorMessage] = useState('')
-  const [rememberMe, setRememberMe] = useState(rememberMeChecked)
+    const [formErrorMessage, setFormErrorMessage] = useState("");
+    const [rememberMe, setRememberMe] = useState(rememberMeChecked);
+    const [email, setEmail] = useState(initialEmail);
+    const [password, setPassword] = useState("");
 
-  const handleRememberMe = () => {
-    setRememberMe(!rememberMe)
-  };
-
-  const initialEmail = localStorage.getItem("rememberMe") ? localStorage.getItem("rememberMe") : '';
-
-  return (
-    <Formik
-      initialValues={{
-        email: initialEmail,
-        password: '',
-      }}
-      validationSchema={Yup.object().shape({
-        email: Yup.string()
-          .email('Email is invalid')
-          .required('Email is required'),
-        password: Yup.string()
-          .min(6, 'Password must be at least 6 characters')
-          .required('Password is required'),
-      })}
-      onSubmit={(values, { setSubmitting }) => {
-        setTimeout(() => {
-          let dataToSubmit = {
-            email: values.email,
-            password: values.password
-          };
-
-          dispatch(loginUser(dataToSubmit))
-            .then(response => {
-              if (response.payload.loginSuccess) {
-                window.localStorage.setItem('userId', response.payload.userId);
-                if (rememberMe === true) {
-                  window.localStorage.setItem('rememberMe', values.id);
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const dataToSubmit = {
+            email,
+            password,
+        };
+        dispatch(loginUser(dataToSubmit))
+            .then((response) => {
+                if (response.payload.loginSuccess) {
+                    window.localStorage.setItem("userId", response.payload.userId);
+                    if (rememberMe === true) {
+                        window.localStorage.setItem("rememberMe", email);
+                    } else {
+                        localStorage.removeItem("rememberMe");
+                    }
+                    props.history.push("/");
                 } else {
-                  localStorage.removeItem('rememberMe');
+                    setFormErrorMessage("Check out your Account or Password again");
                 }
-                props.history.push("/");
-              } else {
-                setFormErrorMessage('Check out your Account or Password again')
-              }
             })
-            .catch(err => {
-              setFormErrorMessage('Check out your Account or Password again')
-              setTimeout(() => {
-                setFormErrorMessage("")
-              }, 3000);
+            .catch((err) => {
+                setFormErrorMessage("Check out your Account or Password again");
+                setTimeout(() => {
+                    setFormErrorMessage("");
+                }, 3000);
             });
-          setSubmitting(false);
-        }, 500);
-      }}
-    >
-      {props => {
-        const {
-          values,
-          touched,
-          errors,
-          dirty,
-          isSubmitting,
-          handleChange,
-          handleBlur,
-          handleSubmit,
-          handleReset,
-        } = props;
-        return (
-          <div className="app">
+    };
 
-            <Title level={2}>Log In</Title>
-            <form onSubmit={handleSubmit} style={{ width: '350px' }}>
-
-              <Form.Item required>
-                <Input
-                  id="email"
-                  prefix={<Icon type="user" style={{ color: 'rgba(0,0,0,.25)' }} />}
-                  placeholder="Enter your email"
-                  type="email"
-                  value={values.email}
-                  onChange={handleChange}
-                  onBlur={handleBlur}
-                  className={
-                    errors.email && touched.email ? 'text-input error' : 'text-input'
-                  }
-                />
-                {errors.email && touched.email && (
-                  <div className="input-feedback">{errors.email}</div>
-                )}
-              </Form.Item>
-
-              <Form.Item required>
-                <Input
-                  id="password"
-                  prefix={<Icon type="lock" style={{ color: 'rgba(0,0,0,.25)' }} />}
-                  placeholder="Enter your password"
-                  type="password"
-                  value={values.password}
-                  onChange={handleChange}
-                  onBlur={handleBlur}
-                  className={
-                    errors.password && touched.password ? 'text-input error' : 'text-input'
-                  }
-                />
-                {errors.password && touched.password && (
-                  <div className="input-feedback">{errors.password}</div>
-                )}
-              </Form.Item>
-
-              {formErrorMessage && (
-                <label ><p style={{ color: '#ff0000bf', fontSize: '0.7rem', border: '1px solid', padding: '1rem', borderRadius: '10px' }}>{formErrorMessage}</p></label>
-              )}
-
-              <Form.Item>
-                <Checkbox id="rememberMe" onChange={handleRememberMe} checked={rememberMe} >Remember me</Checkbox>
-                <a className="login-form-forgot" href="/reset_user" style={{ float: 'right' }}>
-                  forgot password
-                  </a>
-                <div>
-                  <Button type="primary" htmlType="submit" className="login-form-button" style={{ minWidth: '100%' }} disabled={isSubmitting} onSubmit={handleSubmit}>
-                    Log in
-                </Button>
+    return (
+        <div className="container">
+            <div className="main-content">
+                <div className="container">
+                    <h1>התחברות</h1>
+                    <p className="lead">התחברות לחשבון.</p>
+                    <form role="form">
+                        <div className="form-group">
+                            <label for="email">שם משתמש</label>
+                            <input
+                                type="text"
+                                id="user"
+                                name="email"
+                                placeholder="הכנס שם משתמש"
+                                className="form-control"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                            />
+                        </div>
+                        <div className="form-group">
+                            <label for="password">סיסמא</label>
+                            <input
+                                type="password"
+                                id="password"
+                                name="password"
+                                placeholder="הכנס סיסמא"
+                                className="form-control"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                            />
+                        </div>
+                        {formErrorMessage && (
+                            <label>
+                                <p
+                                    style={{
+                                        color: "#ff0000bf",
+                                        fontSize: "0.7rem",
+                                        border: "1px solid",
+                                        padding: "1rem",
+                                        borderRadius: "10px",
+                                    }}>
+                                    {formErrorMessage}
+                                </p>
+                            </label>
+                        )}
+                        <div className="form-group">
+                            <input
+                                type="checkbox"
+                                id="rememberMe"
+                                name="rememberMe"
+                                className="form-check-inline"
+                                value={rememberMe}
+                                onChange={(e) => setRememberMe(e.target.checked)}
+                            />
+                            <label for="rememberMe">זכור אותי לפעמים הבאות</label>
+                        </div>
+                        <button type="submit" className="btn btn-primary" onClick={handleSubmit}>
+                            הכנס
+                        </button>
+                        &nbsp;
+                        <a role="button" href="/" className="btn btn-default">
+                            ביטול
+                        </a>
+                    </form>
+                    <p></p>
                 </div>
-                Or <a href="/register">register now!</a>
-              </Form.Item>
-            </form>
-          </div>
-        );
-      }}
-    </Formik>
-  );
-};
+            </div>
+            <div className="sidebar"></div>
+        </div>
+    );
+}
 
 export default withRouter(LoginPage);
-
-
